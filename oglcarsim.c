@@ -184,7 +184,7 @@ void DrawArmImage(int fastFlag)
     glColor3f(0.0f, 0.0f, 1.0f);
     glLineWidth(3.0);
     glBegin(GL_LINES);
-        for (miscCounter=0; miscCounter < 21; miscCounter++)
+        for (miscCounter=0; miscCounter < 9; miscCounter++)
         {
 
             // Each vertex pair will be connected by a line
