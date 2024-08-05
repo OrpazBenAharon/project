@@ -13,28 +13,33 @@
 
      /* Panels and Controls: */
 
-#define  MAINPNL                         1       /* callback function: PanelCallback */
-#define  MAINPNL_BASE_JOYSTICK_LEFT      2       /* callback function: AdjustShoulderPosition */
-#define  MAINPNL_BASE_JOYSTICK_UP        3       /* callback function: AdjustShoulderPosition */
-#define  MAINPNL_BASE_JOYSTICK_RIGHT     4       /* callback function: AdjustShoulderPosition */
-#define  MAINPNL_BASE_JOYSTICK_DOWN      5       /* callback function: AdjustShoulderPosition */
-#define  MAINPNL_ELBOW_JOYSTICK_UP       6       /* callback function: AdjustElbowPosition */
-#define  MAINPNL_ELBOW_JOYSTICK_DOWN     7       /* callback function: AdjustElbowPosition */
-#define  MAINPNL_WRIST_JOYSTICK_LEFT     8       /* callback function: AdjustWristPosition */
-#define  MAINPNL_WRIST_JOYSTICK_RIGHT    9       /* callback function: AdjustWristPosition */
-#define  MAINPNL_CLAW_OPEN               10      /* callback function: OpenCloseClaw */
-#define  MAINPNL_CLAW_CLOSE              11      /* callback function: OpenCloseClaw */
-#define  MAINPNL_CAMERA_JOYSTICK_LEFT    12      /* callback function: AdjustCameraPosition */
-#define  MAINPNL_CAMERA_JOYSTICK_UP      13      /* callback function: AdjustCameraPosition */
-#define  MAINPNL_CAMERA_JOYSTICK_RIGHT   14      /* callback function: AdjustCameraPosition */
-#define  MAINPNL_CAMERA_JOYSTICK_DOWN    15      /* callback function: AdjustCameraPosition */
-#define  MAINPNL_BASE_LABEL              16
-#define  MAINPNL_ELBOW_LABEL             17
-#define  MAINPNL_WRIST_LABEL             18
-#define  MAINPNL_CLAW_LABEL              19
-#define  MAINPNL_CAMERA_LABEL            20
-#define  MAINPNL_SHOULDER_BACK           21
-#define  MAINPNL_ARM_IMAGE               22      /* callback function: OGLCallback */
+#define  MAINPNL                          1       /* callback function: PanelCallback */
+#define  MAINPNL_BASE_JOYSTICK_LEFT       2       /* control type: picture, callback function: AdjustShoulderPosition */
+#define  MAINPNL_BASE_JOYSTICK_UP         3       /* control type: picture, callback function: AdjustShoulderPosition */
+#define  MAINPNL_BASE_JOYSTICK_RIGHT      4       /* control type: picture, callback function: AdjustShoulderPosition */
+#define  MAINPNL_BASE_JOYSTICK_DOWN       5       /* control type: picture, callback function: AdjustShoulderPosition */
+#define  MAINPNL_ELBOW_JOYSTICK_UP        6       /* control type: picture, callback function: AdjustElbowPosition */
+#define  MAINPNL_ELBOW_JOYSTICK_DOWN      7       /* control type: picture, callback function: AdjustElbowPosition */
+#define  MAINPNL_WRIST_JOYSTICK_LEFT      8       /* control type: picture, callback function: AdjustWristPosition */
+#define  MAINPNL_WRIST_JOYSTICK_RIGHT     9       /* control type: picture, callback function: AdjustWristPosition */
+#define  MAINPNL_CLAW_OPEN                10      /* control type: picture, callback function: OpenCloseClaw */
+#define  MAINPNL_CLAW_CLOSE               11      /* control type: picture, callback function: OpenCloseClaw */
+#define  MAINPNL_CAMERA_JOYSTICK_LEFT     12      /* control type: picture, callback function: AdjustCameraPosition */
+#define  MAINPNL_CAMERA_JOYSTICK_UP       13      /* control type: picture, callback function: AdjustCameraPosition */
+#define  MAINPNL_CAMERA_JOYSTICK_RIGHT    14      /* control type: picture, callback function: AdjustCameraPosition */
+#define  MAINPNL_CAMERA_JOYSTICK_DOWN     15      /* control type: picture, callback function: AdjustCameraPosition */
+#define  MAINPNL_BASE_LABEL               16      /* control type: textMsg, callback function: (none) */
+#define  MAINPNL_ELBOW_LABEL              17      /* control type: textMsg, callback function: (none) */
+#define  MAINPNL_WRIST_LABEL              18      /* control type: textMsg, callback function: (none) */
+#define  MAINPNL_CLAW_LABEL               19      /* control type: textMsg, callback function: (none) */
+#define  MAINPNL_CAMERA_LABEL             20      /* control type: textMsg, callback function: (none) */
+#define  MAINPNL_SHOULDER_BACK            21      /* control type: picture, callback function: (none) */
+#define  MAINPNL_ARM_IMAGE                22      /* control type: picture, callback function: OGLCallback */
+
+
+     /* Control Arrays: */
+
+          /* (no control arrays in the resource file) */
 
 
      /* Menu Bars, Menus, and Menu Items: */
@@ -42,7 +47,7 @@
           /* (no menu bars in the resource file) */
 
 
-     /* Callback Prototypes: */ 
+     /* Callback Prototypes: */
 
 int  CVICALLBACK AdjustCameraPosition(int panel, int control, int event, void *callbackData, int eventData1, int eventData2);
 int  CVICALLBACK AdjustElbowPosition(int panel, int control, int event, void *callbackData, int eventData1, int eventData2);
