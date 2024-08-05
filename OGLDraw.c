@@ -8,52 +8,55 @@
 #include "oglcarsim.h"
 #include "cviogl.h"
 
-extern double baseRotation;
-extern double elbowRotation; // Steering angle
+// External variables for interaction with other parts of the program
+extern double forwardPush;   // External push to the car
+extern double steeringAngle;  // Steering angle
+
+// Internal representation of the car's state
+double carPositionX = 0.0;
+double carPositionY = 0.0;
+double carDirection = 0.0; // Angle in degrees
+double prevForwardPush = 0.0; // To track changes in forwardPush
+
+// Car geometry parameters
+double wheelBase = 2.0; // Distance between the axles
+double trackWidth = 1.2; // Distance between the wheels on an axle
 
 // Function prototypes
 void drawWheelAndBolts(GLUquadric* quad);
 void drawCar(GLUquadric* quad);
-void drawGrid(float offset);
+void drawGrid();
 void drawAxleSystem(GLUquadric* quad);
+void updateCarPosition(double push);
 
-// Draws a larger circular grid with consistent line thickness
-void drawGrid(float offset)
+// Draws a static grid
+void drawGrid()
 {
     glPushMatrix();
         glColor3f(1.0f, 0.0f, 1.0f);
-        glLineWidth(2.0);
-    
+        glLineWidth(3.0);
+
         float gridSize = 20.0f;
         int lineCount = 81;
         float lineSpacing = (2 * gridSize) / (lineCount - 1);
-    
+
         // Horizontal lines
         glBegin(GL_LINES);
         for (int i = 0; i < lineCount; i++)
         {
             float y = -gridSize + lineSpacing * i;
-            for (float x = -gridSize; x <= gridSize; x += 0.2f)
-            {
-                float x1 = x + fmod(offset, lineSpacing);
-                if (x1 > gridSize) x1 -= 2 * gridSize;
-                glVertex2f(x1, y);
-                glVertex2f(x1 + 0.2f, y);
-            }
+            glVertex2f(-gridSize, y);
+            glVertex2f(gridSize, y);
         }
         glEnd();
-    
+
         // Vertical lines
         glBegin(GL_LINES);
         for (i = 0; i < lineCount; i++)
         {
-            float x = -gridSize + lineSpacing * i + fmod(offset, lineSpacing);
-            if (x > gridSize) x -= 2 * gridSize;
-            for (float y = -gridSize; y <= gridSize; y += 0.2f)
-            {
-                glVertex2f(x, y);
-                glVertex2f(x, y + 0.2f);
-            }
+            float x = -gridSize + lineSpacing * i;
+            glVertex2f(x, -gridSize);
+            glVertex2f(x, gridSize);
         }
         glEnd();
     glPopMatrix();
@@ -62,23 +65,24 @@ void drawGrid(float offset)
 // Drawing a wheel with bolts
 void drawWheelAndBolts(GLUquadric* quad)
 {
-    glPushMatrix();    
-        glColor3f(0.5f, 0.5f, 0.5f); // Gray color for the axes
+    glPushMatrix();
+        glColor3f(0.5f, 0.5f, 0.5f); // Gray color for the wheels
+
         // Draw the wheel
-        glRotatef(90.0, 1.0, 0.0, 0.0);    
-        glPushMatrix();        
+        glRotatef(90.0, 1.0, 0.0, 0.0);
+        glPushMatrix();
             glTranslatef(0.0, 0.0, 0.05); // Translate disc to center of the wheel
-            gluDisk(quad, 0.0, 0.4, 30, 1); // Inner radius, outer radius, slices, loops
+            gluDisk(quad, 0.0, 0.25, 30, 1); // Inner radius, outer radius, slices, loops
         glPopMatrix();
-        gluCylinder(quad, 0.4, 0.4, 0.1, 30, 1); // Add a cylinder to give thickness
-        
+        gluCylinder(quad, 0.25, 0.25, 0.1, 30, 1); // Add a cylinder to give thickness
+
         // Draw five bolts around the wheel
         for (int i = 0; i < 5; i++)
         {
             glPushMatrix();
                 glRotatef(i * 72.0, 0.0, 0.0, 1.0); // Rotate bolt position
-                glTranslatef(0.3, 0.0, 0.0); // Move bolt away from the center of the wheel
-                gluCylinder(quad, 0.04, 0.04, 0.1, 10, 10); // Draw bolt
+                glTranslatef(0.16, 0.0, 0.0); // Move bolt away from the center of the wheel
+                gluCylinder(quad, 0.025, 0.025, 0.1, 10, 10); // Draw bolt
             glPopMatrix();
         }
     glPopMatrix();
@@ -100,14 +104,14 @@ void drawAxleSystem(GLUquadric* quad)
     glPushMatrix();
         glTranslatef(0.75, 0.5, 0.0);
         glRotatef(90.0, 1.0, 0.0, 0.0); // Align with y-axis
-        gluCylinder(quad, 0.04, 0.04, 1.0, 20, 1); // Auxiliary axle
+        gluCylinder(quad, 0.04, 0.04, 1.0, 20, 1); // Rear axle
     glPopMatrix();
 
     // Connecting rod
     glPushMatrix();
         glTranslatef(-0.75, 0.0, 0.0);
-		 glRotatef(90.0, 0.0, 1.0, 0.0); // Align with y-axis
-        gluCylinder(quad, 0.04, 0.04, 1.5, 20, 1); // Connecting rod 1
+        glRotatef(90.0, 0.0, 1.0, 0.0); // Align with y-axis
+        gluCylinder(quad, 0.04, 0.04, 1.5, 20, 1); // Connecting rod
     glPopMatrix();
 
     // Spheres at joints
@@ -136,48 +140,71 @@ void drawAxleSystem(GLUquadric* quad)
 // Drawing the complete car using a quadric
 void drawCar(GLUquadric* quad)
 {
-    // Calculate the steering angles for the Ackermann geometry
-    double wheelBase = 2.0; // Distance between the axles
-    double trackWidth = 1.2; // Distance between the wheels on an axle
+	// Calculate steering angles based on Ackermann geometry
+	double innerWheelAngle = atan(wheelBase / (wheelBase / tan(steeringAngle * PI / 180.0) + trackWidth / 2)) * 180.0 / PI;
+	double outerWheelAngle = atan(wheelBase / (wheelBase / tan(steeringAngle * PI / 180.0) - trackWidth / 2)) * 180.0 / PI;
 
-    // Calculate steering angles based on Ackermann geometry
-    double innerWheelAngle = atan(wheelBase / (wheelBase / tan(elbowRotation * PI / 180.0) - trackWidth / 2)) * 180.0 / PI;
-    double outerWheelAngle = atan(wheelBase / (wheelBase / tan(elbowRotation * PI / 180.0) + trackWidth / 2)) * 180.0 / PI;
+	// Update car position based on forwardPush (simulating forward movement)
+	if (forwardPush != prevForwardPush)
+	{
+		updateCarPosition(forwardPush - prevForwardPush);
+		prevForwardPush = forwardPush; // Update the previous forwardPush
+	}
 
     glPushMatrix();
-        glTranslatef(0.0, 0.0, 0.4); // Move the whole car up (z-axis)
+        // Translate car according to its position and direction
+        glTranslatef(carPositionX, carPositionY, 0.25);
+        glRotatef(carDirection, 0.0, 0.0, 1.0);
 
         // Draw the axle system
         drawAxleSystem(quad);
 
-		// Draw wheels at each corner of the car
-		// Front wheels with steering angles
+        // Draw wheels at each corner of the car
+        // Front wheels with steering angles
         glPushMatrix();
             glTranslatef(-0.75, 0.55, 0.0); // Position front-right wheel
-            glRotatef(outerWheelAngle, 0.0, 0.0, 1.0); // Rotate wheel for steering
-            glRotatef(baseRotation, 0.0, 1.0, 0.0); // Rotate the wheel around its rolling axis
+            glRotatef(-innerWheelAngle, 0.0, 0.0, 1.0); // Rotate wheel for steering
+            glRotatef(forwardPush, 0.0, 1.0, 0.0); // Rotate the wheel around its rolling axis
             drawWheelAndBolts(quad);
         glPopMatrix();
     
         glPushMatrix();
             glTranslatef(-0.75, -0.45, 0.0); // Position front-left wheel
-            glRotatef(innerWheelAngle, 0.0, 0.0, 1.0); // Rotate wheel for steering
-            glRotatef(baseRotation, 0.0, 1.0, 0.0); // Rotate the wheel around its rolling axis
+            glRotatef(-outerWheelAngle, 0.0, 0.0, 1.0); // Rotate wheel for steering
+            glRotatef(forwardPush, 0.0, 1.0, 0.0); // Rotate the wheel around its rolling axis
             drawWheelAndBolts(quad);
         glPopMatrix();
-		
+        
         // Rear wheels
         glPushMatrix();
             glTranslatef(0.75, 0.55, 0.0); // Position rear-right wheel
-            glRotatef(baseRotation, 0.0, 1.0, 0.0); // Rotate the wheel around its rolling axis
+            glRotatef(forwardPush, 0.0, 1.0, 0.0); // Rotate the wheel around its rolling axis
             drawWheelAndBolts(quad);
         glPopMatrix();
         
         glPushMatrix();
             glTranslatef(0.75, -0.45, 0.0); // Position rear-left wheel
-            glRotatef(baseRotation, 0.0, 1.0, 0.0); // Rotate the wheel around its rolling axis
+            glRotatef(forwardPush, 0.0, 1.0, 0.0); // Rotate the wheel around its rolling axis
             drawWheelAndBolts(quad);
         glPopMatrix();
 
     glPopMatrix();
+}
+
+// Update the car's position based on push and steering angle
+void updateCarPosition(double pushChange)
+{
+	// Convert pushChange to a movement amount (assuming push is an incremental value)
+	double movementAmount = pushChange * 0.01; // Scale the push appropriately
+
+	// Update the car's position based on its movement amount and current direction
+	carPositionX += movementAmount * cos(carDirection * PI / 180.0);
+	carPositionY += movementAmount * sin(carDirection * PI / 180.0);
+
+	// Update the car's direction based on the steering angle
+	if (movementAmount != 0.0 && steeringAngle != 0.0)
+	{
+		double turningRadius = wheelBase / tan(steeringAngle * PI / 180.0);
+		carDirection += (movementAmount / turningRadius) * (180.0 / PI); // Convert to degrees
+	}
 }

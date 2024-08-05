@@ -1,8 +1,9 @@
 //----------------------------------------------------------------------------
-// This demo shows how the powerful OpenGL can be used to render realistic 3D images.
+// This program shows how OpenGL can be used to render simple car chassis mechanics in 3D.
 //
-//  main.c:  Contains main program structure, initialization and drawing
-//  routines.  Positioning callbacks are defined in "positionme.c"
+//  oglarmsim.c :  	Contains main program structure and initialization and.
+//  oglarmsim2.c:  	Contains Positioning callbacks.
+//	OGLDraw.c	:	Contains drawing routines.
 //----------------------------------------------------------------------------
 
 //----------------------------------------------------------------------------
@@ -14,31 +15,13 @@
 #include <ansi_c.h>
 #include <cvirte.h>
 #include <userint.h>
+#include <toolbox.h>
 #include "oglcarsim.h"
 #include "cviogl.h"
 
 //----------------------------------------------------------------------------
 // Define default values
 //----------------------------------------------------------------------------
-#define DFLT_VIEW_LATITUDE      75.0
-#define DFLT_VIEW_LONGITUDE     45.0
-#define DFLT_VIEWPOINT_X        0.0
-#define DFLT_VIEWPOINT_Y        0.0
-#define DFLT_VIEWPOINT_Z        1.0
-#define DFLT_VIEW_DISTANCE      8.5
-#define DFLT_LIGHT_LATITUDE     30.0
-#define DFLT_BASE_ANGLE         -33.0
-#define DFLT_SHOULDER_ANGLE     -42.0
-#define DFLT_ELBOW_ANGLE        77.0
-#define DFLT_WRIST_ANGLE        30.0
-#define DFLT_CLAW_ANGLE         50.0
-
-// Define other useful constants
-#define ANGLE_INCREMENT         4.0
-#define CLAW_OPEN               0
-#define CLAW_CLOSED             1
-#define TRUE                    1
-#define FALSE                   0
 
 //----------------------------------------------------------------------------
 // Variables
@@ -46,33 +29,22 @@
 // Define panel reference vars
 int mainPanel, OGLControlPanel;
 
+// Define vars used for manipulating car object and view
+double forwardPush =            0.0;
+double steeringAngle =          0.0;
 
-// Define bitmap handles for joystick button displays
-int fourWayButtonUp, fourWayButtonDown, verticalButtonUp, verticalButtonDown,
-    horizontalButtonUp, horizontalButtonDown, clawButtonOpen, clawButtonClose;
-
-// Define vars used for rotating arm object and view
-double shoulderRotation =       DFLT_SHOULDER_ANGLE;
-double elbowRotation =          DFLT_ELBOW_ANGLE;
-double baseRotation =           0.0;//DFLT_BASE_ANGLE;
-double clawAngle =              DFLT_CLAW_ANGLE;
-double wristRotation =          DFLT_WRIST_ANGLE;
-double viewLongitude =          DFLT_VIEW_LONGITUDE;
-double viewLatitude =           DFLT_VIEW_LATITUDE;
-double viewDistance =           DFLT_VIEW_DISTANCE;
-double viewPointX =             DFLT_VIEWPOINT_X;
-double viewPointY =             DFLT_VIEWPOINT_Y;
-double viewPointZ =             DFLT_VIEWPOINT_Z;
-double clawState =              CLAW_OPEN;
+// Internal representation of the car's state
+extern double carPositionX;
+extern double carPositionY;
+extern double carDirection; // Angle in degrees
 
 // Define other useful vars
-int holdButtonDown, miscCounter;
-int xJoyCoord, yJoyCoord;
 GLUquadricObj   *object;
 
 // Function prototypes
 void drawCar(GLUquadric* quad);
-void drawGrid(float offset);
+void drawGrid();
+void updateCameraPosition();
 
 //----------------------------------------------------------------------------
 // Prototypes
@@ -117,52 +89,32 @@ int main (int argc, char *argv[])
 
 //----------------------------------------------------------------------------
 //  InitOGLControl():  Initializes the OGL control and sets the rendering
-//  properties appropriate to the arm image
-
+//  properties appropriate to the car image
+//----------------------------------------------------------------------------
 void InitOGLControl(void)
 {
-    // Setup viewing position for system
-    OGLSetCtrlAttribute (mainPanel, OGLControlPanel, OGLATTR_PROJECTION_TYPE, OGLVAL_PERSPECTIVE);
-    OGLSetCtrlAttribute (mainPanel, OGLControlPanel, OGLATTR_VIEW_DIRECTION, OGLVAL_USER_DEFINED);
-    OGLSetCtrlAttribute (mainPanel, OGLControlPanel, OGLATTR_VIEW_LATITUDE, 55.0);
-    OGLSetCtrlAttribute (mainPanel, OGLControlPanel, OGLATTR_VIEW_LONGITUDE, 30.0);
-    OGLSetCtrlAttribute (mainPanel, OGLControlPanel, OGLATTR_VIEW_CENTERX,0.15);
-    OGLSetCtrlAttribute (mainPanel, OGLControlPanel, OGLATTR_VIEW_CENTERY,0.0);
-    OGLSetCtrlAttribute (mainPanel, OGLControlPanel, OGLATTR_VIEW_CENTERZ,0.30);
-	OGLSetCtrlAttribute (mainPanel, OGLControlPanel, OGLATTR_VIEW_AUTO_DISTANCE, OGLVAL_FALSE);
-    OGLSetCtrlAttribute (mainPanel, OGLControlPanel, OGLATTR_VIEW_DISTANCE, 3.0);
-
-   // Setup lighting for system
-    OGLSetCtrlAttribute (mainPanel, OGLControlPanel, OGLATTR_LIGHTING_ENABLE, 1);
-    OGLSetCtrlAttribute (mainPanel, OGLControlPanel, OGLATTR_LIGHT_SELECT,    1);
-    OGLSetCtrlAttribute (mainPanel, OGLControlPanel, OGLATTR_LIGHT_ENABLE,    1);
-    OGLSetCtrlAttribute (mainPanel, OGLControlPanel, OGLATTR_LIGHT_DISTANCE,  2.0);
-    OGLSetCtrlAttribute (mainPanel, OGLControlPanel, OGLATTR_LIGHT_LATITUDE, DFLT_LIGHT_LATITUDE);
+    // Initial viewing setup
+    OGLSetCtrlAttribute(mainPanel, OGLControlPanel, OGLATTR_PROJECTION_TYPE, OGLVAL_PERSPECTIVE);
+    OGLSetCtrlAttribute(mainPanel, OGLControlPanel, OGLATTR_VIEW_DIRECTION, OGLVAL_USER_DEFINED);
+    OGLSetCtrlAttribute(mainPanel, OGLControlPanel, OGLATTR_VIEW_AUTO_DISTANCE, OGLVAL_FALSE);
 	
-	// Setup plot axes, grids, scaling, and plot area
-	OGLSetCtrlAttribute (mainPanel, OGLControlPanel, OGLATTR_PLOTAREA_ZSTART, 0.0);
-	OGLSetCtrlAttribute (mainPanel, OGLControlPanel, OGLATTR_ZNAME, "z-axis");
-	OGLSetCtrlAttribute (mainPanel, OGLControlPanel, OGLATTR_XNAME, "x-axis");
-	OGLSetCtrlAttribute (mainPanel, OGLControlPanel, OGLATTR_YNAME, "y-axis");
-	OGLSetCtrlAttribute (mainPanel, OGLControlPanel, OGLATTR_ZNAME_POINT_SIZE, 20);
-	OGLSetCtrlAttribute (mainPanel, OGLControlPanel, OGLATTR_XNAME_POINT_SIZE, 20); 
-	OGLSetCtrlAttribute (mainPanel, OGLControlPanel, OGLATTR_YNAME_POINT_SIZE, 20);
-	OGLSetCtrlAttribute (mainPanel, OGLControlPanel, OGLATTR_ZNAME_COLOR, OGLVAL_YELLOW); 
-	OGLSetCtrlAttribute (mainPanel, OGLControlPanel, OGLATTR_XNAME_COLOR, OGLVAL_YELLOW);
-	OGLSetCtrlAttribute (mainPanel, OGLControlPanel, OGLATTR_YNAME_COLOR, OGLVAL_YELLOW);
-	OGLSetCtrlAttribute (mainPanel, OGLControlPanel, OGLATTR_YZ_GRID_VISIBLE, 1);
-	OGLSetCtrlAttribute (mainPanel, OGLControlPanel, OGLATTR_XY_GRID_VISIBLE, 1);
-	OGLSetCtrlAttribute (mainPanel, OGLControlPanel, OGLATTR_XZ_GRID_VISIBLE, 1);
-	OGLSetCtrlAttribute (mainPanel, OGLControlPanel, OGLATTR_YZ_GRID_COLOR, OGLVAL_LT_GRAY); 
-	OGLSetCtrlAttribute (mainPanel, OGLControlPanel, OGLATTR_XY_GRID_COLOR, OGLVAL_LT_GRAY);
-	OGLSetCtrlAttribute (mainPanel, OGLControlPanel, OGLATTR_XZ_GRID_COLOR, OGLVAL_LT_GRAY);
-    // Disable 3D plotting feature of the OGL instrument driver; use only lighting properties
-    // and coordinate system
-    // OGLSetCtrlAttribute (mainPanel,OGLControlPanel, OGLATTR_PLOTTING_ENABLE, 0);
+	updateCameraPosition();
+
+    // Setup lighting for system
+    OGLSetCtrlAttribute(mainPanel, OGLControlPanel, OGLATTR_LIGHTING_ENABLE, 1);
+    OGLSetCtrlAttribute(mainPanel, OGLControlPanel, OGLATTR_LIGHT_SELECT, 1);
+    OGLSetCtrlAttribute(mainPanel, OGLControlPanel, OGLATTR_LIGHT_ENABLE, 1);
+    OGLSetCtrlAttribute(mainPanel, OGLControlPanel, OGLATTR_LIGHT_DISTANCE, 2.0);
+    OGLSetCtrlAttribute(mainPanel, OGLControlPanel, OGLATTR_LIGHT_LATITUDE, 30.0);
+
+	// Disable 3D plotting feature of the OGL instrument driver
+ 	// use only lighting properties and coordinate system
+    OGLSetCtrlAttribute (mainPanel,OGLControlPanel, OGLATTR_PLOTTING_ENABLE, 0);
 }
 
+
 //----------------------------------------------------------------------------
-//  RenderCarImage():  Renders the arm image to the OGL control.
+//  RenderCarImage():  Renders the car image to the OGL control.
 //----------------------------------------------------------------------------
 void RenderCarImage(int fastFlag)
 {
@@ -182,6 +134,13 @@ void RenderCarImage(int fastFlag)
 			glColorMaterial(GL_FRONT_AND_BACK, GL_AMBIENT_AND_DIFFUSE);
 			glMaterialfv(GL_FRONT_AND_BACK, GL_SPECULAR, specularLight0);
 			glMateriali(GL_FRONT_AND_BACK, GL_SHININESS, 128);
+						
+			if(!fastFlag)
+				// Update the camera position and orientation
+				updateCameraPosition();
+
+			// Draw the static grid
+			drawGrid();
 
 			DrawCarImage(fastFlag);
 		
@@ -199,40 +158,50 @@ void RenderCarImage(int fastFlag)
 void DrawCarImage(int fastFlag)
 {
 	// Create a new quadric object; we'll refer to this structure when using
-    // the GLU routines to draw higher-level primitives
-    object = gluNewQuadric();
-	
-	// Draw the moving grid
-    drawGrid(-baseRotation * 0.0001); // Scale the grid movement appropriately
-    
-    // Draw in "Line" mode for speed
-    if (fastFlag)
-        gluQuadricDrawStyle(object,GLU_LINE);
-	
+	// the GLU routines to draw higher-level primitives
+	object = gluNewQuadric();
+
+	// Draw in "Line" mode for speed
+	if (fastFlag)
+		gluQuadricDrawStyle(object,GLU_LINE);
+
 	drawCar(object);
-	
-    gluDeleteQuadric(object);
-    return;
+
+	gluDeleteQuadric(object);
+	return;
 }
+
+void updateCameraPosition()
+{
+	// Set the camera attributes
+	OGLSetCtrlAttribute(mainPanel, OGLControlPanel, OGLATTR_VIEW_LATITUDE, 75.0);
+	OGLSetCtrlAttribute(mainPanel, OGLControlPanel, OGLATTR_VIEW_LONGITUDE, carDirection);
+	OGLSetCtrlAttribute(mainPanel, OGLControlPanel, OGLATTR_VIEW_CENTERX, carPositionX);
+	OGLSetCtrlAttribute(mainPanel, OGLControlPanel, OGLATTR_VIEW_CENTERY, carPositionY);
+	OGLSetCtrlAttribute(mainPanel, OGLControlPanel, OGLATTR_VIEW_CENTERZ, 0.4);
+	OGLSetCtrlAttribute(mainPanel, OGLControlPanel, OGLATTR_VIEW_DISTANCE, 3.0);
+}
+
 
 //----------------------------------------------------------------------------
 //  OGLCallback():  Required by CVI for image refreshes and paints
 //----------------------------------------------------------------------------
 int CVICALLBACK OGLCallback (int panel, int control, int event,
-        void *callbackData, int eventData1, int eventData2)
+							 void *callbackData, int eventData1, int eventData2)
 {
-    switch (event) {
-        case OGLEVENT_REFRESH:
-            // Render the arm image when REFRESH event is received
-            RenderCarImage(eventData1);
-            break;
-    }
-    return 0;
+	switch (event)
+	{
+		case OGLEVENT_REFRESH:
+			// Render the arm image when REFRESH event is received
+			RenderCarImage(eventData1);
+			break;
+	}
+	return 0;
 }
 
 int CVICALLBACK PanelCallback(int panel, int event, void *callbackData, int eventData1, int eventData2)
 {
-	if( event==EVENT_CLOSE )
+	if(event == EVENT_CLOSE)
 		QuitUserInterface(0);
 	return 0;
 }
