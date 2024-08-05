@@ -65,7 +65,6 @@ double viewPointY =             DFLT_VIEWPOINT_Y;
 double viewPointZ =             DFLT_VIEWPOINT_Z;
 double clawState =              CLAW_OPEN;
 
-
 // Define other useful vars
 int holdButtonDown, miscCounter;
 int xJoyCoord, yJoyCoord;
@@ -80,7 +79,7 @@ void drawGrid(float offset);
 //----------------------------------------------------------------------------
 void DrawCarImage(int fastFlag);
 void InitOGLControl(void);
-void RenderArmImage(int fastFlag);
+void RenderCarImage(int fastFlag);
 
 //----------------------------------------------------------------------------
 //  Main
@@ -125,13 +124,13 @@ void InitOGLControl(void)
     // Setup viewing position for system
     OGLSetCtrlAttribute (mainPanel, OGLControlPanel, OGLATTR_PROJECTION_TYPE, OGLVAL_PERSPECTIVE);
     OGLSetCtrlAttribute (mainPanel, OGLControlPanel, OGLATTR_VIEW_DIRECTION, OGLVAL_USER_DEFINED);
-    OGLSetCtrlAttribute (mainPanel, OGLControlPanel, OGLATTR_VIEW_LATITUDE, 70.0);
-    OGLSetCtrlAttribute (mainPanel, OGLControlPanel, OGLATTR_VIEW_LONGITUDE, 45.0);
-    OGLSetCtrlAttribute (mainPanel, OGLControlPanel, OGLATTR_VIEW_CENTERX,0.0);
+    OGLSetCtrlAttribute (mainPanel, OGLControlPanel, OGLATTR_VIEW_LATITUDE, 55.0);
+    OGLSetCtrlAttribute (mainPanel, OGLControlPanel, OGLATTR_VIEW_LONGITUDE, 30.0);
+    OGLSetCtrlAttribute (mainPanel, OGLControlPanel, OGLATTR_VIEW_CENTERX,0.15);
     OGLSetCtrlAttribute (mainPanel, OGLControlPanel, OGLATTR_VIEW_CENTERY,0.0);
-    OGLSetCtrlAttribute (mainPanel, OGLControlPanel, OGLATTR_VIEW_CENTERZ,0.5);
+    OGLSetCtrlAttribute (mainPanel, OGLControlPanel, OGLATTR_VIEW_CENTERZ,0.30);
 	OGLSetCtrlAttribute (mainPanel, OGLControlPanel, OGLATTR_VIEW_AUTO_DISTANCE, OGLVAL_FALSE);
-    OGLSetCtrlAttribute (mainPanel, OGLControlPanel, OGLATTR_VIEW_DISTANCE, 4.5);
+    OGLSetCtrlAttribute (mainPanel, OGLControlPanel, OGLATTR_VIEW_DISTANCE, 3.0);
 
    // Setup lighting for system
     OGLSetCtrlAttribute (mainPanel, OGLControlPanel, OGLATTR_LIGHTING_ENABLE, 1);
@@ -163,9 +162,9 @@ void InitOGLControl(void)
 }
 
 //----------------------------------------------------------------------------
-//  RenderArmImage():  Renders the arm image to the OGL control.
+//  RenderCarImage():  Renders the arm image to the OGL control.
 //----------------------------------------------------------------------------
-void RenderArmImage(int fastFlag)
+void RenderCarImage(int fastFlag)
 {
     GLfloat specularLight0[] = {1.0f, 1.0f, 1.0f, 1.0f};
 
@@ -212,102 +211,6 @@ void DrawCarImage(int fastFlag)
 	
 	drawCar(object);
 	
-	/*
-	
-
-    // Vector routine to draw grid on scene "floor"
-    glColor3f(1.0f, 0.0f, 1.0f);
-    glLineWidth(2.0);
-    glBegin(GL_LINES);
-        for (miscCounter=0; miscCounter < 21; miscCounter++)
-        {
-            // Each vertex pair will be connected by a line
-            glVertex2f(-5.0,-5.0+0.5*miscCounter);
-            glVertex2f(5.0,-5.0+0.5*miscCounter);
-            glVertex2f(-5.0+0.5*miscCounter,5.0);
-            glVertex2f(-5.0+0.5*miscCounter,-5.0);
-        }
-    glEnd();
-	
-	glPushMatrix();
-		glTranslatef (-1.0, 0.0, 0.0);
-		glRotatef (baseRotation, 0.0, 0.0, 1.0);
-		glTranslatef (1.0, 0.0, 0.0);
-			glPushMatrix();
-				glScalef (2.0, 0.4, 1.0);
-				gluCylinder(object, 0.15, 0.1, 1.0, 10, 10);
-			glPopMatrix();
-		
-			glTranslatef (1.0, 0.0, 0.0);
-			glRotatef (shoulderRotation, 0.0, 0.0, 1.0);
-			glTranslatef (1.0, 0.0, 0.0);
-			glPushMatrix();
-				glScalef (2.0, 0.4, 1.0);
-				gluCylinder(object, 0.15, 0.1, 1.0, 10, 10);
-			glPopMatrix();
-	
-	glPopMatrix();
-	
-    // Draw the arm assembly piece by piece
-    glPushMatrix();
-
-        // Draw the base shoulder joint
-        glColor3f(0.1f, 0.1f, 1.0f);
-        gluCylinder(object, 0.5, 0.4, 0.3, 10, 10);
-        glTranslatef(0.0, 0.0, 0.3);
-        gluDisk(object,0.0,0.4,40,40);
-		
-        glColor3f(0.2f, 0.2f, 0.2f);
-        glRotatef(baseRotation, 0.0, 0.0, 1.0);
-        gluSphere(object, 0.3, 30, 30);
-
-        // Draw the shoulder member
-        glRotatef(shoulderRotation,0.0,1.0,0.0);
-        glColor3f(0.1f, 0.1f, 1.0f);
-        gluCylinder(object, 0.15, 0.1, 1.0, 10, 10);
-
-        // Draw the elbow joint
-        glTranslatef(0.0, 0.0, 1.0);
-        glColor3f(0.2f, 0.2f, 0.2f);
-        gluSphere(object, 0.2, 30, 30);
-
-        // Draw the forearm member
-        glRotatef(elbowRotation,0.0,1.0,0.0);
-        glColor3f(0.1f, 0.1f, 1.0f);
-        gluCylinder(object, 0.1, 0.06, 0.7, 10, 10);
-
-        // Draw the wrist joint 
-        glTranslatef(0.0, 0.0, 0.7);
-        glColor3f(0.2f, 0.2f, 0.2f);
-        glRotatef(wristRotation, 0.0, 0.0, 1.0);
-        gluSphere(object, 0.15, 30, 30);
-
-        // Draw bottom half of claw 
-        glColor3f(0.9f, 0.9f, 0.0f);
-        glPushMatrix();
-            glRotatef(DFLT_CLAW_ANGLE - (int)17*clawState,0.0,1.0,0.0);
-            gluCylinder(object, 0.05, 0.04, 0.3, 10, 10);
-            glTranslatef(0.0, 0.0, 0.3);
-            gluSphere(object, 0.04, 30, 30);
-            glTranslatef(0.0, 0.0, -0.05);
-            glRotatef(-70,0.0,1.0,0.0);
-            gluCylinder(object, 0.04, 0.02, 0.2, 10, 10);
-            glTranslatef(0.0, 0.0, 0.2);
-            gluSphere(object, 0.02, 15, 15);
-        glPopMatrix();
-
-        // Draw top half of claw 
-        glRotatef(-DFLT_CLAW_ANGLE + (int)17*clawState,0.0,1.0,0.0);
-        gluCylinder(object, 0.05, 0.04, 0.3, 10, 10);
-        glTranslatef(0.0, 0.0, 0.3);
-        gluSphere(object, 0.04, 30, 30);
-        glTranslatef(0.0, 0.0, -0.05);
-        glRotatef(70,0.0,1.0,0.0);
-        gluCylinder(object, 0.04, 0.02, 0.2, 10, 10);
-        glTranslatef(0.0, 0.0, 0.2);
-        gluSphere(object, 0.02, 15, 15);
-    glPopMatrix(); 
-	*/
     gluDeleteQuadric(object);
     return;
 }
@@ -316,13 +219,12 @@ void DrawCarImage(int fastFlag)
 //  OGLCallback():  Required by CVI for image refreshes and paints
 //----------------------------------------------------------------------------
 int CVICALLBACK OGLCallback (int panel, int control, int event,
-        void *callbackData, int eD1, int eventData2)
+        void *callbackData, int eventData1, int eventData2)
 {
     switch (event) {
         case OGLEVENT_REFRESH:
-
             // Render the arm image when REFRESH event is received
-            RenderArmImage(eD1);
+            RenderCarImage(eventData1);
             break;
     }
     return 0;

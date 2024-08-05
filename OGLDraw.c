@@ -10,106 +10,52 @@
 extern double baseRotation;
 
 // Function prototypes
-// drawCube();
 void drawWheelAndBolts(GLUquadric* quad);
 void drawCar(GLUquadric* quad);
 void drawGrid(float offset);
 
-/// Draws a larger circular grid with consistent line thickness
+// Draws a larger circular grid with consistent line thickness
 void drawGrid(float offset)
 {
     glPushMatrix();
-    glColor3f(1.0f, 0.0f, 1.0f);
-    glLineWidth(2.0);
-
-    float gridSize = 20.0f;
-    int lineCount = 81;
-    float lineSpacing = (2 * gridSize) / (lineCount - 1);
-
-    // Horizontal lines
-    glBegin(GL_LINES);
-    for (int i = 0; i < lineCount; i++)
-    {
-        float y = -gridSize + lineSpacing * i;
-        for (float x = -gridSize; x <= gridSize; x += 0.2f)
-        {
-            float x1 = x + fmod(offset, lineSpacing);
-            if (x1 > gridSize) x1 -= 2 * gridSize;
-            glVertex2f(x1, y);
-            glVertex2f(x1 + 0.2f, y);
-        }
-    }
-    glEnd();
-
-    // Vertical lines
-    glBegin(GL_LINES);
-    for (i = 0; i < lineCount; i++)
-    {
-        float x = -gridSize + lineSpacing * i + fmod(offset, lineSpacing);
-        if (x > gridSize) x -= 2 * gridSize;
-        for (float y = -gridSize; y <= gridSize; y += 0.2f)
-        {
-            glVertex2f(x, y);
-            glVertex2f(x, y + 0.2f);
-        }
-    }
-    glEnd();
-
+    	glColor3f(1.0f, 0.0f, 1.0f);
+    	glLineWidth(2.0);
+	
+    	float gridSize = 20.0f;
+    	int lineCount = 81;
+    	float lineSpacing = (2 * gridSize) / (lineCount - 1);
+	
+    	// Horizontal lines
+    	glBegin(GL_LINES);
+    	for (int i = 0; i < lineCount; i++)
+    	{
+    	    float y = -gridSize + lineSpacing * i;
+    	    for (float x = -gridSize; x <= gridSize; x += 0.2f)
+    	    {
+    	        float x1 = x + fmod(offset, lineSpacing);
+    	        if (x1 > gridSize) x1 -= 2 * gridSize;
+    	        glVertex2f(x1, y);
+    	        glVertex2f(x1 + 0.2f, y);
+    	    }
+    	}
+    	glEnd();
+	
+    	// Vertical lines
+    	glBegin(GL_LINES);
+    	for (i = 0; i < lineCount; i++)
+    	{
+    	    float x = -gridSize + lineSpacing * i + fmod(offset, lineSpacing);
+    	    if (x > gridSize) x -= 2 * gridSize;
+    	    for (float y = -gridSize; y <= gridSize; y += 0.2f)
+    	    {
+    	        glVertex2f(x, y);
+    	        glVertex2f(x, y + 0.2f);
+    	    }
+    	}
+    	glEnd();
     glPopMatrix();
 }
 
-
-//// Draw a simple cube using vertex data, allowing for scaling and translation
-//void drawCube()
-//{
-//	glEnable(GL_NORMALIZE);
-//	glBegin(GL_QUADS);
-//	
-//	// Front Face
-//	glNormal3f(0.0f, 0.0f, 1.0f);
-//	glVertex3f(-0.5f, -0.5f, 0.5f);
-//	glVertex3f(0.5f, -0.5f, 0.5f);
-//	glVertex3f(0.5f, 0.5f, 0.5f);
-//	glVertex3f(-0.5f, 0.5f, 0.5f);
-//	
-//	// Back Face
-//	glNormal3f(0.0f, 0.0f, -1.0f);
-//	glVertex3f(-0.5f, -0.5f, -0.5f);
-//	glVertex3f(-0.5f, 0.5f, -0.5f);
-//	glVertex3f(0.5f, 0.5f, -0.5f);
-//	glVertex3f(0.5f, -0.5f, -0.5f);
-//	
-//	// Top Face
-//	glNormal3f(0.0f, 1.0f, 0.0f);
-//	glVertex3f(-0.5f, 0.5f, -0.5f);
-//	glVertex3f(-0.5f, 0.5f, 0.5f);
-//	glVertex3f(0.5f, 0.5f, 0.5f);
-//	glVertex3f(0.5f, 0.5f, -0.5f);
-//	
-//	// Bottom Face
-//	glNormal3f(0.0f, -1.0f, 0.0f);
-//	glVertex3f(-0.5f, -0.5f, -0.5f);
-//	glVertex3f(0.5f, -0.5f, -0.5f);
-//	glVertex3f(0.5f, -0.5f, 0.5f);
-//	glVertex3f(-0.5f, -0.5f, 0.5f);
-//	
-//	// Right face
-//	glNormal3f(1.0f, 0.0f, 0.0f);
-//	glVertex3f(0.5f, -0.5f, -0.5f);
-//	glVertex3f(0.5f, 0.5f, -0.5f);
-//	glVertex3f(0.5f, 0.5f, 0.5f);
-//	glVertex3f(0.5f, -0.5f, 0.5f);
-//	
-//	// Left Face
-//	glNormal3f(-1.0f, 0.0f, 0.0f);
-//	glVertex3f(-0.5f, -0.5f, -0.5f);
-//	glVertex3f(-0.5f, -0.5f, 0.5f);
-//	glVertex3f(-0.5f, 0.5f, 0.5f);
-//	glVertex3f(-0.5f, 0.5f, -0.5f);
-//		
-//	glEnd();
-//	glDisable(GL_NORMALIZE);
-//}
 
 // Drawing a wheel with bolts
 void drawWheelAndBolts(GLUquadric* quad)
@@ -147,8 +93,6 @@ void drawCar(GLUquadric* quad)
 			glTranslatef(-0.75, 0.0, 0.0); 
 			glRotatef(90.0, 0.0, 1.0, 0.0); // Rotate to align with car width
 			gluCylinder(quad, 0.05, 0.05, 1.5, 20, 1); // Draw cylinder (radius, radius, length, slices, stacks)
-			//glScalef(1.5, 0.5, 0.1); // Scale the cube to the desired dimensions (x-scale,  y-scale,  z-scale)
-			//drawCube(); // Draw the car body (scaled cube)
 		glPopMatrix();
 		
 		 // Draw wheel axes
