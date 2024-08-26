@@ -10,6 +10,7 @@
 // Includes
 //----------------------------------------------------------------------------
 #include <windows.h>
+#include <rs232.h>
 #include <GL\gl.h>
 #include <GL\glu.h>
 #include <ansi_c.h>
@@ -22,7 +23,7 @@
 //----------------------------------------------------------------------------
 // Define default values
 //----------------------------------------------------------------------------
-
+#define INCREMENT       10.0
 //----------------------------------------------------------------------------
 // Variables
 //----------------------------------------------------------------------------
@@ -37,7 +38,8 @@ double steeringAngle =          0.0;
 extern double carPositionX;
 extern double carPositionY;
 extern double carDirection; // Angle in degrees
-
+extern int portNumber;
+extern int start;
 // Define other useful vars
 GLUquadricObj   *object;
 
@@ -52,39 +54,52 @@ void updateCameraPosition();
 void DrawCarImage(int fastFlag);
 void InitOGLControl(void);
 void RenderCarImage(int fastFlag);
-
+static int CVICALLBACK ThreadFunction (void *functionData);
+void CVICALLBACK ComCallback (int MyCounter, int eventMask, void *callbackData);
+void CVICALLBACK DeferredCallbackFunction (void *callbackData);
+static int CVICALLBACK ThreadFunctionTimer (void *functionData);
+void DisplayRS232Error (int err);
+void initializeObstacles(void);
+void drawObstacles(void);
+//bool checkCollision(double carX, double carY, double carWidth, double carHeight);
 //----------------------------------------------------------------------------
 //  Main
 //----------------------------------------------------------------------------
 int main (int argc, char *argv[])
 {
-    if (InitCVIRTE (0, argv, 0) == 0)   /* Needed if linking in external compiler; harmless otherwise */
-        return -1;  /* out of memory */
+	if (InitCVIRTE (0, argv, 0) == 0)   /* Needed if linking in external compiler; harmless otherwise */
+		return -1;  /* out of memory */
 
-    // Load the main program panel
-    if ((mainPanel = LoadPanel (0, "oglcarsim.uir", MAINPNL)) < 0)
-        return -1;
+	// Load the main program panel
+	if ((mainPanel = LoadPanel (0, "oglcarsim.uir", MAINPNL)) < 0)
+		return -1;
 
-    // Convert the CVI picture control to an OGL control
-    OGLControlPanel = OGLConvertCtrl (mainPanel, MAINPNL_ARM_IMAGE);
 
-    // Initialize the OGL control
-    InitOGLControl();
 
-    // Display plot
-    OGLRefreshGraph(mainPanel, OGLControlPanel);
+	// Convert the CVI picture control to an OGL control
+	OGLControlPanel = OGLConvertCtrl (mainPanel, MAINPNL_ARM_IMAGE);
 
-    // Display the main Panel
-    DisplayPanel(mainPanel);
+	// Initialize the OGL control
+	InitOGLControl();
 
-    // Enter the UI loop
-    RunUserInterface();
+	initializeObstacles();
+	
+	// Display plot
+	OGLRefreshGraph(mainPanel, OGLControlPanel);
+	
+	
+	// Display the main Panel
+	DisplayPanel(mainPanel);
 
-    // Hide the panel and discard the OGL control along with the panel
-    HidePanel (mainPanel);
-    OGLDiscardCtrl(mainPanel,OGLControlPanel);
-    DiscardPanel (mainPanel);
-    return 0;
+	// Enter the UI loop
+	RunUserInterface();
+
+	// Hide the panel and discard the OGL control along with the panel
+	HidePanel (mainPanel);
+	if (portNumber)CloseCom (portNumber);
+	OGLDiscardCtrl(mainPanel,OGLControlPanel);
+	DiscardPanel (mainPanel);
+	return 0;
 }
 
 //----------------------------------------------------------------------------
@@ -93,23 +108,23 @@ int main (int argc, char *argv[])
 //----------------------------------------------------------------------------
 void InitOGLControl(void)
 {
-    // Initial viewing setup
-    OGLSetCtrlAttribute(mainPanel, OGLControlPanel, OGLATTR_PROJECTION_TYPE, OGLVAL_PERSPECTIVE);
-    OGLSetCtrlAttribute(mainPanel, OGLControlPanel, OGLATTR_VIEW_DIRECTION, OGLVAL_USER_DEFINED);
-    OGLSetCtrlAttribute(mainPanel, OGLControlPanel, OGLATTR_VIEW_AUTO_DISTANCE, OGLVAL_FALSE);
-	
+	// Initial viewing setup
+	OGLSetCtrlAttribute(mainPanel, OGLControlPanel, OGLATTR_PROJECTION_TYPE, OGLVAL_PERSPECTIVE);
+	OGLSetCtrlAttribute(mainPanel, OGLControlPanel, OGLATTR_VIEW_DIRECTION, OGLVAL_USER_DEFINED);
+	OGLSetCtrlAttribute(mainPanel, OGLControlPanel, OGLATTR_VIEW_AUTO_DISTANCE, OGLVAL_FALSE);
+
 	updateCameraPosition();
 
-    // Setup lighting for system
-    OGLSetCtrlAttribute(mainPanel, OGLControlPanel, OGLATTR_LIGHTING_ENABLE, 1);
-    OGLSetCtrlAttribute(mainPanel, OGLControlPanel, OGLATTR_LIGHT_SELECT, 1);
-    OGLSetCtrlAttribute(mainPanel, OGLControlPanel, OGLATTR_LIGHT_ENABLE, 1);
-    OGLSetCtrlAttribute(mainPanel, OGLControlPanel, OGLATTR_LIGHT_DISTANCE, 2.0);
-    OGLSetCtrlAttribute(mainPanel, OGLControlPanel, OGLATTR_LIGHT_LATITUDE, 30.0);
+	// Setup lighting for system
+	OGLSetCtrlAttribute(mainPanel, OGLControlPanel, OGLATTR_LIGHTING_ENABLE, 1);
+	OGLSetCtrlAttribute(mainPanel, OGLControlPanel, OGLATTR_LIGHT_SELECT, 1);
+	OGLSetCtrlAttribute(mainPanel, OGLControlPanel, OGLATTR_LIGHT_ENABLE, 1);
+	OGLSetCtrlAttribute(mainPanel, OGLControlPanel, OGLATTR_LIGHT_DISTANCE, 2.0);
+	OGLSetCtrlAttribute(mainPanel, OGLControlPanel, OGLATTR_LIGHT_LATITUDE, 30.0);
 
 	// Disable 3D plotting feature of the OGL instrument driver
- 	// use only lighting properties and coordinate system
-    OGLSetCtrlAttribute (mainPanel,OGLControlPanel, OGLATTR_PLOTTING_ENABLE, 0);
+	// use only lighting properties and coordinate system
+	OGLSetCtrlAttribute (mainPanel,OGLControlPanel, OGLATTR_PLOTTING_ENABLE, 0);
 }
 
 
@@ -118,35 +133,35 @@ void InitOGLControl(void)
 //----------------------------------------------------------------------------
 void RenderCarImage(int fastFlag)
 {
-    GLfloat specularLight0[] = {1.0f, 1.0f, 1.0f, 1.0f};
+	GLfloat specularLight0[] = {1.0f, 1.0f, 1.0f, 1.0f};
 
 	glPushAttrib(GL_ALL_ATTRIB_BITS);
 	glMatrixMode(GL_PROJECTION);
 	glPushMatrix();
-	
-		glMatrixMode(GL_MODELVIEW);
-		glPushMatrix();
-		
-			glEnable(GL_DEPTH_TEST);
-			glShadeModel(GL_SMOOTH);
 
-			glEnable(GL_COLOR_MATERIAL);
-			glColorMaterial(GL_FRONT_AND_BACK, GL_AMBIENT_AND_DIFFUSE);
-			glMaterialfv(GL_FRONT_AND_BACK, GL_SPECULAR, specularLight0);
-			glMateriali(GL_FRONT_AND_BACK, GL_SHININESS, 128);
-						
-			if(!fastFlag)
-				// Update the camera position and orientation
-				updateCameraPosition();
+	glMatrixMode(GL_MODELVIEW);
+	glPushMatrix();
 
-			// Draw the static grid
-			drawGrid();
+	glEnable(GL_DEPTH_TEST);
+	glShadeModel(GL_SMOOTH);
 
-			DrawCarImage(fastFlag);
-		
-		glPopMatrix();
-		glMatrixMode(GL_PROJECTION);
-	
+	glEnable(GL_COLOR_MATERIAL);
+	glColorMaterial(GL_FRONT_AND_BACK, GL_AMBIENT_AND_DIFFUSE);
+	glMaterialfv(GL_FRONT_AND_BACK, GL_SPECULAR, specularLight0);
+	glMateriali(GL_FRONT_AND_BACK, GL_SHININESS, 128);
+
+	if(!fastFlag)
+		// Update the camera position and orientation
+		updateCameraPosition();
+
+	// Draw the grid and obstacles 
+	drawGrid();
+
+	DrawCarImage(fastFlag);
+
+	glPopMatrix();
+	glMatrixMode(GL_PROJECTION);
+
 	glPopMatrix();
 	glPopAttrib();
 	glFlush();
@@ -173,14 +188,31 @@ void DrawCarImage(int fastFlag)
 
 void updateCameraPosition()
 {
-	// Set the camera attributes
-	OGLSetCtrlAttribute(mainPanel, OGLControlPanel, OGLATTR_VIEW_LATITUDE, 75.0);
-	OGLSetCtrlAttribute(mainPanel, OGLControlPanel, OGLATTR_VIEW_LONGITUDE, carDirection);
-	OGLSetCtrlAttribute(mainPanel, OGLControlPanel, OGLATTR_VIEW_CENTERX, carPositionX);
-	OGLSetCtrlAttribute(mainPanel, OGLControlPanel, OGLATTR_VIEW_CENTERY, carPositionY);
-	OGLSetCtrlAttribute(mainPanel, OGLControlPanel, OGLATTR_VIEW_CENTERZ, 0.4);
-	OGLSetCtrlAttribute(mainPanel, OGLControlPanel, OGLATTR_VIEW_DISTANCE, 3.0);
+    static double currentLatitude = 75.0;
+    static double currentLongitude = 0.0;
+    static double currentCenterX = 0.0;
+    static double currentCenterY = 0.0;
+    static double currentCenterZ = 0.4;
+    static double currentDistance = 3.0;
+
+    // Smoothing factor (tweak this value)
+    double smoothingFactor = 0.1;
+
+    // Interpolate camera position
+    //currentLongitude = currentLongitude + smoothingFactor * (carDirection - currentLongitude);
+    currentCenterX = currentCenterX + smoothingFactor * (carPositionX - currentCenterX);
+    currentCenterY = currentCenterY + smoothingFactor * (carPositionY - currentCenterY);
+    // currentCenterZ and currentDistance remain constant for simplicity
+
+    // Update camera attributes with smoothed values
+    OGLSetCtrlAttribute(mainPanel, OGLControlPanel, OGLATTR_VIEW_LATITUDE, currentLatitude);
+    OGLSetCtrlAttribute(mainPanel, OGLControlPanel, OGLATTR_VIEW_LONGITUDE, currentLongitude);
+    OGLSetCtrlAttribute(mainPanel, OGLControlPanel, OGLATTR_VIEW_CENTERX, currentCenterX);
+    OGLSetCtrlAttribute(mainPanel, OGLControlPanel, OGLATTR_VIEW_CENTERY, currentCenterY);
+    OGLSetCtrlAttribute(mainPanel, OGLControlPanel, OGLATTR_VIEW_CENTERZ, currentCenterZ);
+    OGLSetCtrlAttribute(mainPanel, OGLControlPanel, OGLATTR_VIEW_DISTANCE, currentDistance);
 }
+
 
 
 //----------------------------------------------------------------------------
@@ -192,12 +224,14 @@ int CVICALLBACK OGLCallback (int panel, int control, int event,
 	switch (event)
 	{
 		case OGLEVENT_REFRESH:
-			// Render the arm image when REFRESH event is received
+			// Render the car image when REFRESH event is received
 			RenderCarImage(eventData1);
 			break;
 	}
 	return 0;
 }
+
+
 
 int CVICALLBACK PanelCallback(int panel, int event, void *callbackData, int eventData1, int eventData2)
 {
@@ -205,3 +239,5 @@ int CVICALLBACK PanelCallback(int panel, int event, void *callbackData, int even
 		QuitUserInterface(0);
 	return 0;
 }
+
+

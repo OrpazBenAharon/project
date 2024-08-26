@@ -5,9 +5,13 @@
 #include <cvirte.h>
 #include <userint.h>
 #include <toolbox.h>
+#include <stdbool.h>
+#include <stdlib.h>
 #include "oglcarsim.h"
 #include "cviogl.h"
 
+#define MAX_OBSTACLES 50   
+//----------------------------------------------------------------------------
 // External variables for interaction with other parts of the program
 extern double forwardPush;   // External push to the car
 extern double steeringAngle;  // Steering angle
@@ -18,51 +22,107 @@ double carPositionY = 0.0;
 double carDirection = 0.0; // Angle in degrees
 double prevForwardPush = 0.0; // To track changes in forwardPush
 
+//grid prameters
+double centerX ;
+double centerY ;
+float gridSize = 32.0f;
+int lineCount = 17;
+
 // Car geometry parameters
 double wheelBase = 2.0; // Distance between the axles
 double trackWidth = 1.2; // Distance between the wheels on an axle
 
+// Obstacle and Wall
+// Structure to represent an obstacle or wall
+typedef struct {
+    float posX;
+    float posY;
+    float width;
+    float height;
+    bool isWall; // True if it's a wall, false if it's an obstacle
+} Obstacle;
+
+// Array to hold obstacles and walls
+Obstacle obstacles[MAX_OBSTACLES];
+int obstacleCount = 0;
+//----------------------------------------------------------------------------
 // Function prototypes
 void drawWheelAndBolts(GLUquadric* quad);
 void drawCar(GLUquadric* quad);
+bool isNearCenter(float carX, float carY, float centerX, float centerY);
+void renderGridLines(int lineCount, float lineSpacing);
+void resetGridCenter(float carX, float carY) ;
 void drawGrid();
 void drawAxleSystem(GLUquadric* quad);
 void updateCarPosition(double push);
+bool isNearCenter(float carX, float carY, float centerX, float centerY);
+void initializeObstacles();
+void drawObstacles();
+//----------------------------------------------------------------------------
 
-// Draws a static grid
+//----------------------------------------------------------------------------
+// Draws a cyclic grid
+//----------------------------------------------------------------------------
 void drawGrid()
 {
     glPushMatrix();
-        glColor3f(1.0f, 0.0f, 1.0f);
-        glLineWidth(3.0);
+    glColor3f(1.0f, 0.0f, 1.0f);
+    glLineWidth(3.0);
+    float lineSpacing = (2 * gridSize) / (lineCount - 1);
 
-        float gridSize = 20.0f;
-        int lineCount = 81;
-        float lineSpacing = (2 * gridSize) / (lineCount - 1);
-
-        // Horizontal lines
-        glBegin(GL_LINES);
-        for (int i = 0; i < lineCount; i++)
-        {
-            float y = -gridSize + lineSpacing * i;
-            glVertex2f(-gridSize, y);
-            glVertex2f(gridSize, y);
-        }
-        glEnd();
-
-        // Vertical lines
-        glBegin(GL_LINES);
-        for (i = 0; i < lineCount; i++)
-        {
-            float x = -gridSize + lineSpacing * i;
-            glVertex2f(x, -gridSize);
-            glVertex2f(x, gridSize);
-        }
-        glEnd();
+    // Render the primary grid
+    glTranslatef(centerX, 0.0f, 0.0f);
+    renderGridLines(lineCount, lineSpacing);
+	drawObstacles();
+    // Check if the car is near the center to render additional grids
+    if (!isNearCenter(carPositionX, carPositionY, centerX, centerY))
+    {
+        // Reset the grid center when the car passes the center
+		resetGridCenter(carPositionX, carPositionY); 
+    }
     glPopMatrix();
 }
 
-// Drawing a wheel with bolts
+
+void renderGridLines(int lineCount, float lineSpacing)
+{
+    // Horizontal lines
+    glBegin(GL_LINES);
+    for (int i = 0; i < lineCount; i++)
+    {
+        float y = -gridSize + lineSpacing * i;
+        glVertex2f(-gridSize, y/16);
+        glVertex2f(gridSize, y/16);
+    }
+    glEnd();
+
+    // Vertical lines
+    glBegin(GL_LINES);
+    for (i = 0; i < 16*lineCount; i++)
+    {
+        float x = -gridSize + lineSpacing/16 * i;
+        glVertex2f(x, -gridSize/16);
+        glVertex2f(x, gridSize/16);
+    }
+    glEnd();
+}
+
+bool isNearCenter(float carX, float carY, float centerX, float centerY)
+{
+    float threshold = gridSize / 2.0f;  // Define a suitable threshold for proximity
+    return (fabs(carX - centerX) < threshold);
+}
+
+void resetGridCenter(float carX, float carY)
+{
+    // Reset the grid center to the current car position
+    centerX = carX;
+}
+
+//----------------------------------------------------------------------------
+// Drawing a car
+//----------------------------------------------------------------------------
+// Drawing a wheel with bolts  
 void drawWheelAndBolts(GLUquadric* quad)
 {
     glPushMatrix();
@@ -191,20 +251,80 @@ void drawCar(GLUquadric* quad)
     glPopMatrix();
 }
 
-// Update the car's position based on push and steering angle
+//---------------------------------------------------------------------------- 
+// Car Position
+//---------------------------------------------------------------------------- 
 void updateCarPosition(double pushChange)
 {
-	// Convert pushChange to a movement amount (assuming push is an incremental value)
-	double movementAmount = pushChange * 0.01; // Scale the push appropriately
+    double movementAmount = pushChange * 0.01; // Scale the push appropriately
 
-	// Update the car's position based on its movement amount and current direction
-	carPositionX += movementAmount * cos(carDirection * PI / 180.0);
-	carPositionY += movementAmount * sin(carDirection * PI / 180.0);
 
-	// Update the car's direction based on the steering angle
-	if (movementAmount != 0.0 && steeringAngle != 0.0)
-	{
-		double turningRadius = wheelBase / tan(steeringAngle * PI / 180.0);
-		carDirection += (movementAmount / turningRadius) * (180.0 / PI); // Convert to degrees
-	}
+    // Update the car's position
+    carPositionX += movementAmount * cos(carDirection * PI / 180.0);
+    carPositionY += movementAmount * sin(carDirection * PI / 180.0);
+
+
+    // Update the car's direction based on the steering angle
+    if (movementAmount != 0.0 && steeringAngle != 0.0)
+    {
+        double turningRadius = wheelBase / tan(steeringAngle * PI / 180.0);
+        carDirection += (movementAmount / turningRadius) * (180.0 / PI); // Convert to degrees
+    }
+}
+//---------------------------------------------------------------------------- 
+// Obstacle and Wall
+//---------------------------------------------------------------------------- 
+
+void initializeObstacles()
+{
+	// Initialize the random number generator with the current time as the seed
+	srand(time(NULL));
+    obstacleCount = 1 + rand() % 10; // Randomize the number of obstacles between 1 and 10
+    for (int i = 0; i < obstacleCount; i++)
+    {
+        // Generate random positions using floating-point arithmetic
+        obstacles[i].posX = ((float)rand() / RAND_MAX) * (gridSize/2)- gridSize/2; // X position between -gridSize/2 and gridSize/2
+        obstacles[i].posY = ((float)rand() / RAND_MAX) * (gridSize/32) - gridSize/32; // Y position between -gridSize/32 and gridSize/32
+
+        obstacles[i].width = 0.5f; // Random width between 1.0 and 5.0
+        obstacles[i].height = 0.5f; // Random height between 1.0 and 5.0
+        obstacles[i].isWall = rand() % 2; // Randomly decide if it's a wall (true) or obstacle (false)
+    }
+}
+
+
+ void drawObstacles()
+{
+    //glPushMatrix();
+    for (int i = 0; i < obstacleCount; i++)
+    {
+        if (obstacles[i].isWall)
+            glColor3f(0.5f, 0.5f, 0.5f); // Gray color for walls
+        else
+            glColor3f(1.0f, 0.0f, 0.0f); // Red color for obstacles
+
+        glBegin(GL_QUADS);
+            glVertex2f(obstacles[i].posX, obstacles[i].posY);
+            glVertex2f(obstacles[i].posX + obstacles[i].width, obstacles[i].posY);
+            glVertex2f(obstacles[i].posX + obstacles[i].width, obstacles[i].posY + obstacles[i].height);
+            glVertex2f(obstacles[i].posX, obstacles[i].posY + obstacles[i].height);
+        glEnd();
+    }
+    //glPopMatrix();
+}
+
+ bool checkCollision(double carX, double carY, double carWidth, double carHeight)
+{
+    for (int i = 0; i < obstacleCount; i++)
+    {
+        if (carX < obstacles[i].posX + obstacles[i].width &&
+            carX + carWidth > obstacles[i].posX &&
+            carY < obstacles[i].posY + obstacles[i].height &&
+            carY + carHeight > obstacles[i].posY)
+        {
+            // Collision detected
+            return true;
+        }
+    }
+    return false;
 }

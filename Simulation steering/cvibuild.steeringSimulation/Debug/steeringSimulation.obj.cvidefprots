@@ -1,0 +1,20 @@
+[main]
+Class="Function"
+Prototype="int main(int argc, char **argv);"
+
+[AdjustPush]
+Class="Function"
+Prototype="int AdjustPush(int panel, int control, int event, void *callbackData, int eventData1, int eventData2);"
+
+[QuitCallback]
+Class="Function"
+Prototype="int QuitCallback(int panel, int control, int event, void *callbackData, int eventData1, int eventData2);"
+
+[ConnectComCb]
+Class="Function"
+Prototype="int ConnectComCb(int panel, int control, int event, void *callbackData, int eventData1, int eventData2);"
+
+[DisplayRS232Error]
+Class="Function"
+Prototype="void DisplayRS232Error(int err);"
+
