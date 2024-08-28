@@ -1,0 +1,13 @@
+Controller.obj
+cvi.lib
+cvistart.lib
+locatecom.lib
+toolbox.obj
+advapi32.lib
+cviauto.lib
+gdi32.lib
+kernel32.lib
+user32.lib
+EXE Symbol Module
+Exports Module
+Resource Module

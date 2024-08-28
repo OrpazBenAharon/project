@@ -1,0 +1,233 @@
+[Workspace Header]
+Version = 2000
+Pathname = "/c/Users/stopc/Desktop/OGL_CarSim/OGL_CarSim.cws"
+CVI Dir = "/c/program files (x86)/national instruments/cvi2020"
+CVI Shared Dir = "/C/Program Files (x86)/National Instruments/Shared/CVI"
+CVI Pub Local Dir = "/C/ProgramData/National Instruments/CVI2020"
+CVI Pub Global Dir = "/C/ProgramData/National Instruments/CVI"
+IVI Standard Root Dir = "/C/Program Files (x86)/IVI Foundation/IVI"
+IVI Standard Root 64-bit Dir = "/C/Program Files/IVI Foundation/IVI"
+VXIplug&play Framework Dir = "/C/Program Files (x86)/IVI Foundation/VISA/winnt"
+VXIplug&play Framework 64-bit Dir = "/C/Program Files/IVI Foundation/VISA/win64"
+Number of Projects = 1
+Active Project = 1
+Project 0001 = "OGL_CarSim.prj"
+Drag Bar Left = 300
+Window Top = 81
+Window Left = 41
+Window Bottom = 1092
+Window Right = 1945
+Maximized = True
+Maximized Children = True
+Max32 Number Of Errors = 20
+Track Include File Dependencies = True
+Prompt For Missing Includes = True
+Stop On First Error File = False
+Bring Up Err Win At Start = True
+Bring Up Err Win For Errors = False
+Save Changes Before Running = "Always"
+Save Changes Before Compiling = "Always"
+Hide Windows = False
+Break At First Statement = False
+Sort Type = "File Name"
+Number of Opened Files = 5
+Window Confinement Region Enabled = True
+MainColumnWidth = 283
+FileDateColumnWidth = 70
+FileSizeColumnWidth = 70
+
+[Project Header 0001]
+Version = 2000
+Don't Update DistKit = False
+Platform Code = 4
+Build Configuration = "Debug"
+Warn User If Debugging Release = 1
+Batch Build Release = False
+Batch Build Debug = False
+
+[File 0001]
+Path = "/c/program files (x86)/national instruments/cvi2020/toolslib/custctrl/cviogl.fp"
+File Type = "Function Panel"
+Disk Date = 3763327676
+In Projects = "1,"
+
+[File 0002]
+Path = "/c/Users/stopc/Desktop/OGL_CarSim/OGL_CarSimHeader.h"
+File Type = "Include"
+Disk Date = 3807711722
+In Projects = "1,"
+Source Window State = "1,26,26,26,8,25,8,0,3,0,0,0,0,0,0,0,54,0,26,25,609,984,1,0,"
+Window Top = 33
+Window Left = 10
+Window Z-Order = 2
+
+[File 0003]
+Path = "/c/Users/stopc/Desktop/OGL_CarSim/OGL_CarSim.uir"
+File Type = "User Interface Resource"
+Disk Date = 3807705751
+In Projects = "1,"
+Window Top = 33
+Window Left = 10
+Window Height = 609
+Window Width = 984
+Window Z-Order = 5
+
+[File 0004]
+Path = "/c/Users/stopc/Desktop/OGL_CarSim/OGL_CarSimCallbacks.c"
+File Type = "CSource"
+Disk Date = 3807713759
+In Projects = "1,"
+Source Window State = "1,103,103,103,18,18,18,0,0,0,0,0,0,0,0,0,107,0,103,18,494,984,1,0,"
+Window Top = 64
+Window Left = 26
+Window Z-Order = 3
+
+[File 0005]
+Path = "/c/Users/stopc/Desktop/OGL_CarSim/OGL_CarSimMain.c"
+File Type = "CSource"
+Disk Date = 3807711296
+In Projects = "1,"
+Source Window State = "1,7,7,7,32,32,32,0,0,0,0,0,0,0,0,0,0,0,7,32,494,984,1,0,"
+Window Top = 95
+Window Left = 42
+Window Z-Order = 4
+
+[File 0006]
+Path = "/c/Users/stopc/Desktop/OGL_CarSim/OGL_CarSimRender.c"
+File Type = "CSource"
+Disk Date = 3807714202
+In Projects = "1,"
+Source Window State = "1,16,16,16,25,25,25,0,0,0,0,0,0,0,0,0,320,0,16,25,494,984,1,0,"
+Window Top = 126
+Window Left = 58
+Window Z-Order = 1
+
+[File 0007]
+Path = "/c/Users/stopc/Desktop/OGL_CarSim/locatecom.h"
+File Type = "Include"
+Disk Date = 3805384252
+In Projects = "1,"
+Source Window State = "1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,400,600,0,0,"
+
+[File 0008]
+Path = "/c/Users/stopc/Desktop/OGL_CarSim/OGL_CarSim.h"
+File Type = "Include"
+Disk Date = 3807705833
+In Projects = "1,"
+Source Window State = "1,35,35,35,0,0,0,0,0,0,0,0,0,0,0,0,16,0,35,0,448,962,1,0,"
+Window Top = 219
+Window Left = 106
+
+[File 0009]
+Path = "/C/Program Files (x86)/Windows Kits/8.1/Lib/winv6.3/um/x86/GlU32.Lib"
+File Type = "Library"
+Disk Date = 3459944018
+In Projects = "1,"
+
+[File 0010]
+Path = "/c/Users/stopc/Desktop/OGL_CarSim/locatecom.lib"
+File Type = "Library"
+Disk Date = 3805384252
+In Projects = "1,"
+
+[File 0011]
+Path = "/C/Program Files (x86)/Windows Kits/8.1/Lib/winv6.3/um/x86/OpenGL32.Lib"
+File Type = "Library"
+Disk Date = 3459940106
+In Projects = "1,"
+
+[Tab Order]
+Tab 0001 = "/c/Users/stopc/Desktop/OGL_CarSim/OGL_CarSimMain.c"
+Tab 0002 = "/c/Users/stopc/Desktop/OGL_CarSim/OGL_CarSimCallbacks.c"
+Tab 0003 = "/c/Users/stopc/Desktop/OGL_CarSim/OGL_CarSimRender.c"
+Tab 0004 = "/c/Users/stopc/Desktop/OGL_CarSim/OGL_CarSimHeader.h"
+Tab 0005 = "/c/Users/stopc/Desktop/OGL_CarSim/OGL_CarSim.uir"
+
+[Default Build Config 0001 Debug]
+Generate Browse Info = True
+Enable Uninitialized Locals Runtime Warning = True
+Batch Build = False
+Profile = "Disabled"
+Debugging Level = "Standard"
+Execution Trace = "Disabled"
+Command Line Args = ""
+Working Directory = ""
+Environment Options = ""
+External Process Path = ""
+
+[Default Build Config 0001 Release]
+Generate Browse Info = True
+Enable Uninitialized Locals Runtime Warning = True
+Batch Build = False
+Profile = "Disabled"
+Debugging Level = "Standard"
+Execution Trace = "Disabled"
+Command Line Args = ""
+Working Directory = ""
+Environment Options = ""
+External Process Path = ""
+
+[Default Build Config 0001 Debug64]
+Generate Browse Info = True
+Enable Uninitialized Locals Runtime Warning = True
+Batch Build = False
+Profile = "Disabled"
+Debugging Level = "Standard"
+Execution Trace = "Disabled"
+Command Line Args = ""
+Working Directory = ""
+Environment Options = ""
+External Process Path = ""
+
+[Default Build Config 0001 Release64]
+Generate Browse Info = True
+Enable Uninitialized Locals Runtime Warning = True
+Batch Build = False
+Profile = "Disabled"
+Debugging Level = "Standard"
+Execution Trace = "Disabled"
+Command Line Args = ""
+Working Directory = ""
+Environment Options = ""
+External Process Path = ""
+
+[Build Dependencies 0001]
+Number of Dependencies = 0
+
+[Build Options 0001]
+Generate Browse Info = True
+Enable Uninitialized Locals Runtime Warning = True
+Execution Trace = "Disabled"
+Profile = "Disabled"
+Debugging Level = "Standard"
+Break On Library Errors = True
+Break On First Chance Exceptions = False
+
+[Execution Target 0001]
+Execution Target Address = "Local desktop computer"
+Execution Target Port = 0
+Execution Target Type = 0
+
+[SCC Options 0001]
+Use global settings = True
+SCC Provider = ""
+SCC Project = ""
+Local Path = ""
+Auxiliary Path = ""
+Perform Same Action For .h File As For .uir File = "Ask"
+Perform Same Action For .cds File As For .prj File = "Ask"
+Username = ""
+Comment = ""
+Use Default Username = False
+Use Default Comment = False
+Suppress CVI Error Messages = False
+Always show confirmation dialog = True
+
+[DLL Debugging Support 0001]
+External Process Path = ""
+
+[Command Line Args 0001]
+Command Line Args = ""
+Working Directory = ""
+Environment Options = ""
+
