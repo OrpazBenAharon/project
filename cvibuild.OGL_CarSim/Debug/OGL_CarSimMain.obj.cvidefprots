@@ -1,0 +1,20 @@
+[main]
+Class="Function"
+Prototype="int main(int argc, char *argv[]);"
+SourceLocation="c:\Users\stopc\Desktop\CVICarProject\project\OGL_CarSimMain.c:8:5"
+
+[InitOGLControl]
+Class="Function"
+Prototype="void InitOGLControl();"
+SourceLocation="c:\Users\stopc\Desktop\CVICarProject\project\OGL_CarSimMain.c:45:6"
+
+[ResetCarPosition]
+Class="Function"
+Prototype="void ResetCarPosition();"
+SourceLocation="c:\Users\stopc\Desktop\CVICarProject\project\OGL_CarSimMain.c:67:6"
+
+[PanelCallback]
+Class="Function"
+Prototype="int PanelCallback(int panel, int event, void *callbackData, int eventData1, int eventData2);"
+SourceLocation="c:\Users\stopc\Desktop\CVICarProject\project\OGL_CarSimMain.c:76:17"
+

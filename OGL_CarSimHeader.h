@@ -1,6 +1,7 @@
 #ifndef OGLCARSIM_H
 #define OGLCARSIM_H
 
+// Standard and OpenGL includes
 #include <windows.h>
 #include <GL/gl.h>
 #include <GL/glu.h>
@@ -13,30 +14,31 @@
 #include "OGL_CarSim.h"
 #include "locatecom.h"
 
-// Constants
-#define DISTANCE        7.0
-#define HEIGHT          3.0
-#define CENTERZ         0.4
-#define FPS             60
-#define FRAME_TIME      (1.0/FPS)
-#define MAX_OBSTACLES   50
-#define WHEEL_BASE      2.0
-#define TRACK_WIDTH     1.2
-#define GRID_SIZE       90.0
-#define LINE_COUNT      9
-#define INCREMENT_FORWARD 1.0
-#define INCREMENT_ANGLE 3
-#define MAX_ANGLE       30
+// Constants for simulation parameters
+#define DISTANCE        7.0        // Camera distance from car
+#define HEIGHT          3.0        // Camera height
+#define CENTERZ         0.4        // Center Z-coordinate for camera focus
+#define FPS             60         // Frames per second
+#define FRAME_TIME      (1.0/FPS)  // Time per frame
+#define MAX_OBSTACLES   50         // Maximum number of obstacles
+#define WHEEL_BASE      2.0        // Distance between front and rear axles
+#define TRACK_WIDTH     1.2        // Distance between left and right wheels
+#define GRID_SIZE       90.0       // Size of the grid
+#define LINE_COUNT      9          // Number of grid lines
+#define INCREMENT_FORWARD 1.0      // Forward movement increment
+#define INCREMENT_ANGLE 3          // Steering angle increment
+#define MAX_ANGLE       30         // Maximum steering angle
 
-// Structs
+// Structure to represent obstacles
 typedef struct {
     float posX;
     float posY;
     float width;
     float height;
-    bool isWall;
+    bool isObstacle;
 } Obstacle;
 
+// Structure to represent the car's state
 typedef struct {
     double positionX;
     double positionY;
